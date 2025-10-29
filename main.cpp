@@ -29,19 +29,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    /*GLfloat vertices[] = {
-        // Position         Colors
-        0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
-        -0.5f, 0.5f, 0.0f,  0.0f, 0.0f, 1.0f
-        -0.5f, -0.5f, 0.0f, 1.0F, 1.0f, 1.0f,
-    };
-
-    GLuint indices[] = {
-        0, 2, 3,
-        0, 3, 1,
-    };*/
-
     GLfloat vertices[] = {
         -0.5f, -0.5f,0.0f,   1.0f, 0.0f, 0.0f,
         0.5f, -0.5f,0.0f,    0.0f, 1.0f, 0.0f,
