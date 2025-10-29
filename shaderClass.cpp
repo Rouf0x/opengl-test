@@ -27,23 +27,14 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile) {
     glShaderSource(vertexShader, 1, &vertexSource, nullptr);
     glCompileShader(vertexShader);
 
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
-        std::cout << "Vertex shader compilation failed:\n" << infoLog << std::endl;
-    }
+    checkCompilationErrors(vertexShader, "Vertex Shader");
 
     // Create and compile fragment shader
     GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
     glCompileShader(fragmentShader);
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        std::cout << "Fragment shader compilation failed:\n" << infoLog << std::endl;
-    }
+
+    checkCompilationErrors(fragmentShader, "Fragment Shader");
 
     // Create program (store in member ID)
     ID = glCreateProgram();
@@ -51,16 +42,34 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile) {
     glAttachShader(ID, fragmentShader);
     glLinkProgram(ID);
 
-    // Check linking
-    glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(ID, 512, nullptr, infoLog);
-        std::cout << "Shader program linking failed:\n" << infoLog << std::endl;
-    }
+    checkCompilationErrors(ID, "Program Link");
 
     // Delete shaders after linking
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+}
+
+void Shader::checkCompilationErrors(unsigned int shader, const char* type) {
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cout << type << ": compilation failed!\n" << infoLog << std::endl;
+    }
+
+    /*glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
+        std::cout << "Fragment shader compilation failed:\n" << infoLog << std::endl;
+    }*/
+
+    /* Check linking
+    glGetProgramiv(ID, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(ID, 512, nullptr, infoLog);
+        std::cout << "Shader program linking failed:\n" << infoLog << std::endl;
+    }*/
 }
 
 void Shader::Activate() {
