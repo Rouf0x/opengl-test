@@ -30,12 +30,13 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f,0.0f,  1.0f, 0.0f, 0.0f,
-        0.0f, -0.5f,0.0f,   1.0f, 0.0f, 1.0f,
-        0.5f, -0.5f,0.0f,   0.0f, 0.0f, 1.0f,
-        0.25f, 0.0f, 0.0f,  0.0f, 1.0f, 1.0f,
-        0.0f, 0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
-        -0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+        // Positions        // Colors           //
+        -0.5f,  -0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
+         0.0f,  -0.5f,  0.0f,   1.0f, 0.0f, 1.0f,
+         0.5f,  -0.5f,  0.0f,   0.0f, 0.0f, 1.0f,
+         0.25f,  0.0f,  0.0f,   0.0f, 1.0f, 1.0f,
+         0.0f,   0.5f,  0.0f,   0.0f, 1.0f, 0.0f,
+        -0.25f,  0.0f,  0.0f,   1.0f, 1.0f, 0.0f,
     };
 
     GLuint indices[] = {
@@ -92,7 +93,7 @@ int main() {
         // Use the shader program
         shaderProgram.Activate();
 
-        glUniform1f(U_Scale, 0.5f);
+        glUniform1f(U_Scale, 0.5);
 
         // Binds to the VAO1 to draw the scene
         VAO1.Bind();
