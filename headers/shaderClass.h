@@ -5,8 +5,6 @@
 #ifndef SHADERCLASS_H
 #define SHADERCLASS_H
 
-#endif //SHADERCLASS_H
-
 #include <glad/glad.h>
 #include <string>
 #include <fstream>
@@ -25,3 +23,5 @@ class Shader {
     void Activate();
     void Delete();
 };
+
+#endif //SHADERCLASS_H

@@ -2,11 +2,13 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb/stb_image.h>
 
 #include "headers/shaderClass.h"
 #include "headers/VAO.h"
 #include "headers/VBO.h"
 #include "headers/EBO.h"
+#include "headers/texture.h"
 
 using namespace std;
 
@@ -30,19 +32,16 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLfloat vertices[] = {
-        // Positions        // Colors           //
-        -0.5f,  -0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
-         0.0f,  -0.5f,  0.0f,   1.0f, 0.0f, 1.0f,
-         0.5f,  -0.5f,  0.0f,   0.0f, 0.0f, 1.0f,
-         0.25f,  0.0f,  0.0f,   0.0f, 1.0f, 1.0f,
-         0.0f,   0.5f,  0.0f,   0.0f, 1.0f, 0.0f,
-        -0.25f,  0.0f,  0.0f,   1.0f, 1.0f, 0.0f,
+        // Positions            // Colors           // Texture ST coordinates
+        -0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
+         0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 0.0f
     };
 
     GLuint indices[] = {
-        0, 1, 5,
-        1, 2, 3,
-        5, 3, 4
+        0, 1, 3,
+        1, 2, 3
     };
 
     // Create a new window element
@@ -73,15 +72,20 @@ int main() {
     EBO EBO1(indices, sizeof(indices));
 
     // Link the VBO to the VAO1
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 6 * sizeof(float), nullptr);
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), nullptr);
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
     // Unbind (stop using) to prevent accidental changes to the VAO, VBO or EBO
     VAO1.Unbind();
     VBO1.Unbind();
     EBO1.Unbind();
 
-    GLuint U_Scale = glGetUniformLocation(shaderProgram.ID, "scale");
+    GLint U_Scale = glGetUniformLocation(shaderProgram.ID, "scale");
+
+    const char* texturePath = "../texture.jpg";
+    texture texture(texturePath, GL_TEXTURE_2D, GL_RGB, GL_TEXTURE0);
+    texture.GenerateTex(shaderProgram, "tex0", 0);
 
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
@@ -95,8 +99,8 @@ int main() {
 
         glUniform1f(U_Scale, 0.5);
 
-        // Binds to the VAO1 to draw the scene
         VAO1.Bind();
+        texture.Bind();
 
         // Clear the error log
         GLClearError();
@@ -118,6 +122,7 @@ int main() {
     VBO1.Delete();
     EBO1.Delete();
     shaderProgram.Delete();
+    texture.Delete();
 
     // removes the window
     glfwDestroyWindow(window);
