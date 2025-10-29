@@ -8,6 +8,7 @@
 #include "headers/VAO.h"
 #include "headers/VBO.h"
 #include "headers/EBO.h"
+#include "headers/texture.h"
 
 using namespace std;
 
@@ -80,31 +81,11 @@ int main() {
     VBO1.Unbind();
     EBO1.Unbind();
 
-    GLuint U_Scale = glGetUniformLocation(shaderProgram.ID, "scale");
+    GLint U_Scale = glGetUniformLocation(shaderProgram.ID, "scale");
 
-    /// texture experiment stuff
-    int widthImg, heightImg, numColCh;
-    stbi_set_flip_vertically_on_load(1);
-    unsigned char* bytes = stbi_load("../texture.jpg", &widthImg, &heightImg, &numColCh, 0);
-
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, widthImg, heightImg, 0, GL_RGB, GL_UNSIGNED_BYTE, bytes);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    GLuint tex0Uni = glGetUniformLocation(shaderProgram.ID, "tex0");
-    shaderProgram.Activate();
-    glUniform1i(tex0Uni, 0);
-    ///
+    const char* texturePath = "../texture.jpg";
+    texture texture(texturePath, GL_TEXTURE_2D, GL_RGB, GL_TEXTURE0);
+    texture.GenerateTex(shaderProgram, "tex0", 0);
 
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
@@ -117,10 +98,9 @@ int main() {
         shaderProgram.Activate();
 
         glUniform1f(U_Scale, 0.5);
-        glBindTexture(GL_TEXTURE0, texture);
 
-        // Binds to the VAO1 to draw the scene
         VAO1.Bind();
+        texture.Bind();
 
         // Clear the error log
         GLClearError();
@@ -142,7 +122,7 @@ int main() {
     VBO1.Delete();
     EBO1.Delete();
     shaderProgram.Delete();
-    glDeleteTextures(1, &texture);
+    texture.Delete();
 
     // removes the window
     glfwDestroyWindow(window);
