@@ -80,6 +80,8 @@ int main() {
     VBO1.Unbind();
     EBO1.Unbind();
 
+    GLuint U_Scale = glGetUniformLocation(shaderProgram.ID, "scale");
+
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
         // Sets the background color to rgba float values
@@ -89,6 +91,8 @@ int main() {
 
         // Use the shader program
         shaderProgram.Activate();
+
+        glUniform1f(U_Scale, 0.5f);
 
         // Binds to the VAO1 to draw the scene
         VAO1.Bind();
