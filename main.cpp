@@ -30,13 +30,18 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLfloat vertices[] = {
-        -0.5f, -0.5f,0.0f,   1.0f, 0.0f, 0.0f,
-        0.5f, -0.5f,0.0f,    0.0f, 1.0f, 0.0f,
-        0.0f, 0.5f,0.0f,     0.0f, 0.0f, 1.0f,
+        -0.5f, -0.5f,0.0f,  1.0f, 0.0f, 0.0f,
+        0.0f, -0.5f,0.0f,   1.0f, 0.0f, 1.0f,
+        0.5f, -0.5f,0.0f,   0.0f, 0.0f, 1.0f,
+        0.25f, 0.0f, 0.0f,  0.0f, 1.0f, 1.0f,
+        0.0f, 0.5f, 0.0f,   0.0f, 1.0f, 0.0f,
+        -0.25f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
     };
 
     GLuint indices[] = {
-        0, 1, 2,
+        0, 1, 5,
+        1, 2, 3,
+        5, 3, 4
     };
 
     // Create a new window element
