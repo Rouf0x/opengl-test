@@ -17,6 +17,7 @@ add_library(glad glad.c
         VAO.cpp
         headers/VAO.h
         shaderClass.cpp
+        libraries/include/stb/stb_image.h
 )
 target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/libraries/include)
 

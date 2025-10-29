@@ -2,6 +2,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb/stb_image.h>
 
 #include "headers/shaderClass.h"
 #include "headers/VAO.h"
@@ -31,18 +32,15 @@ int main() {
 
     GLfloat vertices[] = {
         // Positions        // Colors           //
-        -0.5f,  -0.5f,  0.0f,   1.0f, 0.0f, 0.0f,
-         0.0f,  -0.5f,  0.0f,   1.0f, 0.0f, 1.0f,
-         0.5f,  -0.5f,  0.0f,   0.0f, 0.0f, 1.0f,
-         0.25f,  0.0f,  0.0f,   0.0f, 1.0f, 1.0f,
-         0.0f,   0.5f,  0.0f,   0.0f, 1.0f, 0.0f,
-        -0.25f,  0.0f,  0.0f,   1.0f, 1.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
+        -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f,
     };
 
     GLuint indices[] = {
-        0, 1, 5,
-        1, 2, 3,
-        5, 3, 4
+        0, 1, 3,
+        1, 2, 3
     };
 
     // Create a new window element
