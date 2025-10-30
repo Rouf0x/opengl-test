@@ -23,10 +23,15 @@ void camera::matrix(float FOVdeg, float nearPlane, float farPlane, Shader &shade
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(projection * view));
 }
 
+void camera::updateViewportSize(int newWidth, int newHeight) {
+    width = newWidth;
+    height = newHeight;
+}
+
+
 void camera::inputs(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += speed * orientation;
-        std::cout << "a";
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
@@ -59,8 +64,6 @@ void camera::inputs(GLFWwindow* window) {
         if (firstClick) {
             glfwSetCursorPos(window, (width/2), (height/2));
             firstClick = false;
-
-            std::cout << "bomboclat";
         }
 
         double mouseX, mouseY;

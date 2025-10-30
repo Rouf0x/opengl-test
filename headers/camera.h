@@ -35,6 +35,7 @@ class camera {
 
         void matrix(float FOVdeg, float nearPlane, float farPlane, Shader& shader, const char* uniform);
         void inputs(GLFWwindow* window);
+        void updateViewportSize(int newWidth, int newHeight);
 };
 
 

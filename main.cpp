@@ -1,5 +1,10 @@
 //#include <stdio.h>
 #include <iostream>
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -16,8 +21,9 @@
 
 using namespace std;
 
-const int width = 800;
-const int height = 600;
+int scr_width = 800;
+int scr_height = 600;
+camera camera(scr_width, scr_height, glm::vec3(0.0f, 0.0f, 2.0f));
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -28,6 +34,15 @@ static void GLCheckError() {
         cout << "OpenGL Error: " << Error << endl;
     }
 }
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+    scr_width = width;
+    scr_height = height;
+    camera.updateViewportSize(width, height); // update camera aspect ratio
+}
+
 
 int main() {
     // Initializes GLFW
@@ -58,9 +73,8 @@ int main() {
     };
 
 
-
     // Create a new window element
-    GLFWwindow* window = glfwCreateWindow(width,height, "OpenGL Application", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(scr_width,scr_height, "OpenGL Application", nullptr, nullptr);
     // If window doesn't exist error out.
     if (!window) {
         cout << "Failed to initialize GLFW Window!";
@@ -69,12 +83,25 @@ int main() {
     }
     // Use the window as the current context.
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Load OpenGL using glad.
     gladLoadGL();
 
     // Sets the OpenGL Viewport from 0,0 to 800, 600
-    glViewport(0,0,800,600);
+    glViewport(0,0,scr_width,scr_height);
+
+    // Initialize IMGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
+    // FPS counter stuff
+    double begin_time = glfwGetTime();
+    int frames = 0;
 
     // Create a new Shader Program with the vertex and fragment shaders
     Shader shaderProgram("../resources/shaders/default_vertex.glsl", "../resources/shaders/default_fragment.glsl");
@@ -106,8 +133,6 @@ int main() {
     // Enable Depth_Test to avoid faces behind other ones from being rendered
     glEnable(GL_DEPTH_TEST);
 
-    camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
-
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
         // Sets the background color to rgba float values
@@ -133,12 +158,31 @@ int main() {
         // Print errors if we encountered any
         GLCheckError();
 
+        // FPS counter
+        int fps = ++frames / glfwGetTime() - begin_time;
+        // Imgui stuff
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::SetNextWindowSize(ImVec2(200, 100));
+        ImGui::Begin("Context Info");
+        ImGui::Text(("Current FPS: " + to_string(fps)).c_str());
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         // Swap the back buffer to the front buffer to correctly display the color.
         glfwSwapBuffers(window);
 
         // Responds to GLFW events.
         glfwPollEvents();
     }
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     // Cleans all objects (VAO, VBO, EBO, ShaderProgram...)
     VAO1.Delete();

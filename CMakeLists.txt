@@ -1,43 +1,63 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.16)
 project(OpenGLProject LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- GLAD ---
-add_library(glad glad.c
-        headers/shaderClass.h
+# --- Paths ---
+set(LIB_DIR ${CMAKE_SOURCE_DIR}/libraries)
+set(INCLUDE_DIR ${LIB_DIR}/include)
+set(IMGUI_DIR ${LIB_DIR}/include/imgui)
+
+# --- GLAD + your utility classes ---
+add_library(glad
+        glad.c
         shaderClass.cpp
-        shaderClass.cpp
-        headers/VBO.h
-        VBO.cpp
         VBO.cpp
         EBO.cpp
-        headers/EBO.h
         VAO.cpp
-        headers/VAO.h
-        shaderClass.cpp
-        libraries/include/stb/stb_image.h
         stb.cpp
         texture.cpp
-        headers/texture.h
         camera.cpp
+
+        headers/shaderClass.h
+        headers/VBO.h
+        headers/EBO.h
+        headers/VAO.h
+        headers/texture.h
         headers/camera.h
 )
-target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/libraries/include)
+
+target_include_directories(glad PUBLIC ${INCLUDE_DIR} headers)
+
+# --- Dear ImGui ---
+set(IMGUI_SRC
+        ${IMGUI_DIR}/imgui.cpp
+        ${IMGUI_DIR}/imgui_draw.cpp
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp
+        ${IMGUI_DIR}/imgui_demo.cpp
+        ${IMGUI_DIR}/imgui_impl_glfw.cpp
+        ${IMGUI_DIR}/imgui_impl_opengl3.cpp
+)
+
+add_library(imgui STATIC ${IMGUI_SRC})
+target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${IMGUI_DIR}/backends ${INCLUDE_DIR})
+target_link_libraries(imgui PRIVATE ${LIB_DIR}/lib/libglfw3.a)
 
 # --- Main executable ---
 add_executable(opengl main.cpp)
-target_include_directories(opengl PRIVATE ${CMAKE_SOURCE_DIR}/libraries/include)
+target_include_directories(opengl PRIVATE ${INCLUDE_DIR} headers ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
 # --- Find OpenGL ---
 find_package(OpenGL REQUIRED)
 
-# --- Link GLFW static library (.a file) and GLAD ---
+# --- Link everything together ---
 target_link_libraries(opengl
         PRIVATE
         glad
-        ${CMAKE_SOURCE_DIR}/libraries/lib/libglfw3.a
+        imgui
+        ${LIB_DIR}/lib/libglfw3.a
         OpenGL::GL
         dl
         pthread
@@ -48,7 +68,7 @@ target_link_libraries(opengl
         m
 )
 
-# --- Optional: show build info ---
-message(STATUS "Using CMake version: ${CMAKE_VERSION}")
-message(STATUS "Using compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
-message(STATUS "Linked GLFW: ${CMAKE_SOURCE_DIR}/libraries/lib/libglfw3.a")
+# --- Build info (optional) ---
+message(STATUS "CMake version: ${CMAKE_VERSION}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(STATUS "GLFW linked from: ${LIB_DIR}/lib/libglfw3.a")
