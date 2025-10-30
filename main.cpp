@@ -12,6 +12,7 @@
 #include "headers/VBO.h"
 #include "headers/EBO.h"
 #include "headers/texture.h"
+#include "headers/camera.h"
 
 using namespace std;
 
@@ -96,22 +97,16 @@ int main() {
     VBO1.Unbind();
     EBO1.Unbind();
 
-    // Create a scale uniform that can be edited to make the object appear larger or smaller
-    // GLint U_Scale = glGetUniformLocation(shaderProgram.ID, "scale");
-
-
     // Create a new texture
     const char* texturePath = "../texture.jpg";
     texture texture(texturePath, GL_TEXTURE_2D, GL_RGB, GL_TEXTURE0);
     // Generate the texture object
     texture.GenerateTex(shaderProgram, "tex0", 0);
 
-    // Set a rotation and a previous time value
-    float rotation = 0.0f;
-    double prevTime = glfwGetTime();
-
     // Enable Depth_Test to avoid faces behind other ones from being rendered
     glEnable(GL_DEPTH_TEST);
+
+    camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
 
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
@@ -123,36 +118,8 @@ int main() {
         // Use the shader program
         shaderProgram.Activate();
 
-        // Increase the rotation by one 60 times per second.
-        double crntTime = glfwGetTime();
-        if (crntTime - prevTime >= 1 / 60) {
-            rotation += 1.0f;
-            prevTime = crntTime;
-        }
-
-        // Create a new matrix filled with 1's for the model, the view and proj objects
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 proj = glm::mat4(1.0f);
-
-        // Apply a rotation matrix from the Y axis to the model.
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-
-        // Move the world away from the camera (-0.5f downwards and -2.0f backwards)
-        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
-        // Set the clip to 45.0f radians fov, with the aspect ratio of the size of the window, without rendering objects that are closer than 0.1f and further away than 100.0f
-        proj = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.1f, 100.0f);
-
-        // Create the uniform for every objects giving their matrices
-        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
-
-        // Set the scale uniform to 1
-        //glUniform1f(U_Scale, 1);
+        camera.matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
+        camera.inputs(window);
 
         // Bind (use) the VAO and the texture
         VAO1.Bind();

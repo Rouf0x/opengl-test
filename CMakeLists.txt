@@ -21,6 +21,8 @@ add_library(glad glad.c
         stb.cpp
         texture.cpp
         headers/texture.h
+        camera.cpp
+        headers/camera.h
 )
 target_include_directories(glad PUBLIC ${CMAKE_SOURCE_DIR}/libraries/include)
 
