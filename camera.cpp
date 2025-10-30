@@ -28,7 +28,6 @@ void camera::updateViewportSize(int newWidth, int newHeight) {
     height = newHeight;
 }
 
-
 void camera::inputs(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += speed * orientation;

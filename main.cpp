@@ -136,6 +136,7 @@ int main() {
 
     float rotation = 0.0f;
     float rotation_speed = 0.05f;
+    float FOV = 45.0f;
 
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
@@ -147,7 +148,7 @@ int main() {
         // Use the shader program
         shaderProgram.Activate();
 
-        camera.matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
+        camera.matrix(FOV, 0.1f, 100.0f, shaderProgram, "camMatrix");
         camera.inputs(window);
 
         // Pyramid matrix
@@ -187,6 +188,7 @@ int main() {
         ImGui::PushItemWidth(250.0f);
         ImGui::SliderFloat("Camera Speed", &camera.speed, 0.005f, 1.0f);
         ImGui::SliderFloat("Camera Sensitivity", &camera.sensitivity, 5.00f, 1000.0f);
+        ImGui::SliderFloat("Camera FOV", &FOV, 0.00f, 180.0f);
         ImGui::Dummy(ImVec2(0.0f, 20.0f));
         ImGui::Text("Model Settings");
         ImGui::SliderFloat("Rotation Speed", &rotation_speed, 0.0f, 10.0f);
