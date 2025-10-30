@@ -2,7 +2,10 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb/stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+//#include <stb/stb_image.h>
 
 #include "headers/shaderClass.h"
 #include "headers/VAO.h"
@@ -11,6 +14,9 @@
 #include "headers/texture.h"
 
 using namespace std;
+
+const int width = 800;
+const int height = 600;
 
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
@@ -32,20 +38,29 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     GLfloat vertices[] = {
-        // Positions            // Colors           // Texture ST coordinates
-        -0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-         0.5f,  0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-         0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,   0.0f, 0.0f
+        // Positions            // Colors           // Texture ST
+        -0.5f, 0.0f,  0.5f,     1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   // 0
+         0.5f, 0.0f,  0.5f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f,   // 1
+         0.5f, 0.0f, -0.5f,     1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   // 2
+        -0.5f, 0.0f, -0.5f,     1.0f, 1.0f, 1.0f,   1.0f, 0.0f,   // 3
+         0.0f, 1.0f,  0.0f,     1.0f, 1.0f, 1.0f,   0.5f, 1.0f,   // 4 apex
     };
+
 
     GLuint indices[] = {
         0, 1, 3,
-        1, 2, 3
+        1, 2, 3,
+
+        2, 3, 4,
+        0, 3, 4,
+        1, 0, 4,
+        2, 1, 4
     };
 
+
+
     // Create a new window element
-    GLFWwindow* window = glfwCreateWindow(800,600, "OpenGL Application", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(width,height, "OpenGL Application", nullptr, nullptr);
     // If window doesn't exist error out.
     if (!window) {
         cout << "Failed to initialize GLFW Window!";
@@ -87,17 +102,44 @@ int main() {
     texture texture(texturePath, GL_TEXTURE_2D, GL_RGB, GL_TEXTURE0);
     texture.GenerateTex(shaderProgram, "tex0", 0);
 
+    float rotation = 0.0f;
+    double prevTime = glfwGetTime();
+
+    glEnable(GL_DEPTH_TEST);
+
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
         // Sets the background color to rgba float values
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         // Clear the color buffer bit and assign the new color to it
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Use the shader program
         shaderProgram.Activate();
 
-        glUniform1f(U_Scale, 0.5);
+        double crntTime = glfwGetTime();
+        if (crntTime - prevTime >= 1 / 60) {
+            rotation += 1.0f;
+            prevTime = crntTime;
+        }
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 proj = glm::mat4(1.0f);
+
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        view = glm::translate(view, glm::vec3(0.0f, -0.5f, -2.0f));
+        proj = glm::perspective(glm::radians(45.0f), (float)(width / height), 0.1f, 100.0f);
+
+        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        int viewLoc = glGetUniformLocation(shaderProgram.ID, "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        int projLoc = glGetUniformLocation(shaderProgram.ID, "proj");
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
+
+        glUniform1f(U_Scale, 1);
 
         VAO1.Bind();
         texture.Bind();
@@ -106,7 +148,7 @@ int main() {
         GLClearError();
 
         // Draw the VAO elements
-        glDrawElements(GL_TRIANGLES, 9,GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int),GL_UNSIGNED_INT, nullptr);
         // Print errors if we encountered any
         GLCheckError();
 
