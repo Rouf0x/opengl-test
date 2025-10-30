@@ -21,8 +21,8 @@
 
 using namespace std;
 
-int scr_width = 800;
-int scr_height = 600;
+int scr_width = 1366;
+int scr_height = 768;
 camera camera(scr_width, scr_height, glm::vec3(0.0f, 0.0f, 2.0f));
 
 static void GLClearError() {
@@ -94,13 +94,13 @@ int main() {
     // Initialize IMGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    //ImGuiIO& io = ImGui::GetIO();
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
     // FPS counter stuff
-    double begin_time = glfwGetTime();
+    const double begin_time = glfwGetTime();
     int frames = 0;
 
     // Create a new Shader Program with the vertex and fragment shaders
@@ -116,8 +116,8 @@ int main() {
 
     // Link the VBO to the VAO1
     VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 8 * sizeof(float), nullptr);
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 8 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
+    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 8 * sizeof(float), reinterpret_cast<void *>(6 * sizeof(float)));
 
     // Unbind (stop using) to prevent accidental changes to the VAO, VBO or EBO
     VAO1.Unbind();
@@ -125,13 +125,17 @@ int main() {
     EBO1.Unbind();
 
     // Create a new texture
-    const char* texturePath = "../texture.jpg";
-    texture texture(texturePath, GL_TEXTURE_2D, GL_RGB, GL_TEXTURE0);
+
+    const char* texturePath = "../bricks01.jpg";
+    const texture texture(texturePath, GL_TEXTURE_2D, GL_RGB, GL_TEXTURE0);
     // Generate the texture object
-    texture.GenerateTex(shaderProgram, "tex0", 0);
+    texture::GenerateTex(shaderProgram, "tex0", 0);
 
     // Enable Depth_Test to avoid faces behind other ones from being rendered
     glEnable(GL_DEPTH_TEST);
+
+    float rotation = 0.0f;
+    float rotation_speed = 0.05f;
 
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
@@ -146,9 +150,18 @@ int main() {
         camera.matrix(45.0f, 0.1f, 100.0f, shaderProgram, "camMatrix");
         camera.inputs(window);
 
+        // Pyramid matrix
+        auto model = glm::mat4(1.0f);
+
+        rotation += rotation_speed;
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+
+        int modelLoc = glGetUniformLocation(shaderProgram.ID, "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
         // Bind (use) the VAO and the texture
         VAO1.Bind();
-        texture.Bind();
+        //texture.Bind();
 
         // Clear the error log
         GLClearError();
@@ -159,15 +172,24 @@ int main() {
         GLCheckError();
 
         // FPS counter
-        int fps = ++frames / glfwGetTime() - begin_time;
+        double fps = ++frames / glfwGetTime() - begin_time;
+
         // Imgui stuff
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowSize(ImVec2(200, 100));
-        ImGui::Begin("Context Info");
-        ImGui::Text(("Current FPS: " + to_string(fps)).c_str());
+        ImGui::SetNextWindowSize(ImVec2(400, 400));
+        ImGui::Begin("Debug Settings");
+        ImGui::Text("Current FPS: %.1f", fps);
+        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        ImGui::Text("Camera Settings");
+        ImGui::PushItemWidth(250.0f);
+        ImGui::SliderFloat("Camera Speed", &camera.speed, 0.005f, 1.0f);
+        ImGui::SliderFloat("Camera Sensitivity", &camera.sensitivity, 5.00f, 1000.0f);
+        ImGui::Dummy(ImVec2(0.0f, 20.0f));
+        ImGui::Text("Model Settings");
+        ImGui::SliderFloat("Rotation Speed", &rotation_speed, 0.0f, 10.0f);
         ImGui::End();
 
         ImGui::Render();
