@@ -21,20 +21,25 @@
 
 using namespace std;
 
+// Initialize the base window size
 int scr_width = 1366;
 int scr_height = 768;
+// Create the camera object
 camera camera(scr_width, scr_height, glm::vec3(0.0f, 0.0f, 2.0f));
 
+// Clear the errors
 static void GLClearError() {
     while (glGetError() != GL_NO_ERROR);
 }
 
+// Print out OpenGL errors
 static void GLCheckError() {
     while (const GLenum Error = glGetError()) {
         cout << "OpenGL Error: " << Error << endl;
     }
 }
 
+// Adjust the viewport and the aspect ratio when the window is resized
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -148,7 +153,7 @@ int main() {
         // Use the shader program
         shaderProgram.Activate();
 
-        camera.matrix(FOV, 0.1f, 100.0f, shaderProgram, "camMatrix");
+        camera.matrix(FOV, 0.1f, 1000.0f, shaderProgram, "camMatrix");
         camera.inputs(window);
 
         // Pyramid matrix
@@ -188,7 +193,7 @@ int main() {
         ImGui::PushItemWidth(250.0f);
         ImGui::SliderFloat("Camera Speed", &camera.speed, 0.005f, 1.0f);
         ImGui::SliderFloat("Camera Sensitivity", &camera.sensitivity, 5.00f, 1000.0f);
-        ImGui::SliderFloat("Camera FOV", &FOV, 0.00f, 180.0f);
+        ImGui::SliderFloat("Camera FOV", &FOV, 0.001f, 180.0f);
         ImGui::Dummy(ImVec2(0.0f, 20.0f));
         ImGui::Text("Model Settings");
         ImGui::SliderFloat("Rotation Speed", &rotation_speed, 0.0f, 10.0f);
