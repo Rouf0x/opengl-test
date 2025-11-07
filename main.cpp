@@ -153,7 +153,8 @@ int main() {
         // Use the shader program
         shaderProgram.Activate();
 
-        camera.matrix(FOV, 0.1f, 1000.0f, shaderProgram, "camMatrix");
+        camera.updateMatrix(FOV, 0.1f, 1000.0f);
+        camera.matrix(shaderProgram, "camMatrix");
         camera.inputs(window);
 
         // Pyramid matrix
