@@ -6,19 +6,20 @@
 #define TEXTURE_H
 
 #include <glad/glad.h>
-
 #include "shaderClass.h"
 
 class texture {
-    public:
-        GLuint ID{};
-        texture(const char* textureImagePath,GLenum textureType, GLenum format, GLenum textureUnit);
+public:
+    GLuint ID{};             // Texture ID
+    GLenum textureType{};    // Texture target type (e.g., GL_TEXTURE_2D)
+    GLuint unit{};           // Texture unit index (slot)
 
-        void Bind() const;
-        static void Unbind();
-        void Delete() const;
-        static void GenerateTex(Shader shader, const char* uniformValue, GLuint unit);
+    texture(const char* textureImagePath, GLenum textureType, GLuint slot, GLenum format, GLenum pixelType);
+
+    void Bind() const;
+    static void Unbind();
+    void Delete() const;
+    void GenerateTex(Shader& shader, const char* uniformName, GLint unit) const;
 };
-
 
 #endif //TEXTURE_H
