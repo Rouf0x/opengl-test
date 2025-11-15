@@ -29,7 +29,7 @@ vec4 pointLight() {
     vec3 normalFinal = normalize(normal);
     vec3 lightDirection = normalize(lightVec);
     float diffuse = max(dot(normalFinal, lightDirection), 0.0f);
-    //float ambientIntensity = 0.2f;
+    //float ambientIntensityIntensity = 0.2f;
 
     //float specularIntensity = 2.00f;
     vec3 viewVector = normalize(camPos - currentPos);
@@ -37,7 +37,7 @@ vec4 pointLight() {
     float specularAmount = pow(max(dot(viewVector, specularReflection), 0.0f), 16);
     float specular = specularAmount * specularIntensity;
 
-    return (texture(tex0, textureCoordinates) * (diffuse * inten + ambientIntensity) + texture(tex1, textureCoordinates).r * specular) * lightColor;
+    return (texture(tex0, textureCoordinates) * (diffuse * inten + ambientIntensity) + texture(tex1, textureCoordinates).r * specular * inten) * lightColor;
 }
 
 vec4 directLight() {
@@ -50,7 +50,7 @@ vec4 directLight() {
     vec3 normalFinal = normalize(normal);
     vec3 lightDirection = normalize(lightVec);
     float diffuse = max(dot(normalFinal, lightDirection), 0.0f);
-    //float ambientIntensity = 0.2f;
+    //float ambientIntensityIntensity = 0.2f;
 
     //float specularIntensity = 2.00f;
     vec3 viewVector = normalize(camPos - currentPos);
@@ -58,19 +58,23 @@ vec4 directLight() {
     float specularAmount = pow(max(dot(viewVector, specularReflection), 0.0f), 16);
     float specular = specularAmount * specularIntensity;
 
-    return (texture(tex0, textureCoordinates) * (diffuse * inten + ambientIntensity) + texture(tex1, textureCoordinates).r * specular) * lightColor;
+    return (texture(tex0, textureCoordinates) * (diffuse + ambientIntensity) + texture(tex1, textureCoordinates).r * specular) * lightColor;
 }
 
 vec4 spotLight() {
-    vec3 lightVec = lightPos - (currentPos );
+    vec3 lightVec = lightPos - currentPos;
 
     float outerCone = 0.97;
     float innerCone = 0.98;
 
+    float dist = length(lightVec);
+    float a = 0.80f;
+    float b = 0.0f;
+
     vec3 normalFinal = normalize(normal);
     vec3 lightDirection = normalize(lightVec);
     float diffuse = max(dot(normalFinal, lightDirection), 0.0f);
-    //float ambientIntensity = 0.2f;
+    //float ambientIntensityIntensity = 0.2f;
 
     //float specularIntensity = 2.00f;
     vec3 viewVector = normalize(camPos - currentPos);
@@ -79,7 +83,7 @@ vec4 spotLight() {
     float specular = specularAmount * specularIntensity;
 
     float angle = dot(normalize(lookVector), -lightDirection);
-    float inten = clamp((angle - outerCone) / (innerCone - outerCone), 0.0f, 1.0f);
+    float inten = 1.0f / (a * dist * dist + b * dist + 1.0f) * clamp((angle - outerCone) / (innerCone - outerCone), 0.0f, 1.0f);
 
     return (texture(tex0, textureCoordinates) * (diffuse * inten + ambientIntensity) + texture(tex1, textureCoordinates).r * specular * inten) * lightColor;
 }
