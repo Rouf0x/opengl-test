@@ -229,10 +229,9 @@ int main() {
     float FOV = 60.0f;
 
     // Initializes the specular, ambient and other light variables.
+    int lightingType = 1;
     float specularIntensity = 5.0f;
     float ambientIntensity = 0.1f;
-    float lightAIntensity = 3.0f;
-    float lightBIntensity = 0.7f;
 
     // Set the light color to solid white
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -266,6 +265,7 @@ int main() {
         glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
         glUniform3f(glGetUniformLocation(shaderProgram.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
 
+        glUniform1i(glGetUniformLocation(shaderProgram.ID, "lightType"), lightingType);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "specularIntensity"), specularIntensity);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "ambientIntensity"), ambientIntensity);
 
@@ -334,7 +334,11 @@ int main() {
         ImGui::Spacing();
         ImGui::SliderFloat("Specular Intensity", &specularIntensity, 0.0f, 10.0f);
         ImGui::SliderFloat("Ambient Intensity", &ambientIntensity, 0.0f, 1.0f);
-        //ImGui::rgb("Light Color", &rotation_speed, 0.0f, 10.0f);
+        const char* lightingTypesArray[] = { "Point Light", "Direct Light", "Spot Light" };
+        static int current_item_index = 0;
+        if (ImGui::Combo("Lighting Type", &current_item_index, lightingTypesArray, IM_ARRAYSIZE(lightingTypesArray))) {
+            lightingType = current_item_index + 1;
+        }
         ImGui::End();
 
         // Render and draw the ImGui window
