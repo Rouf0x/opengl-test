@@ -306,7 +306,7 @@ int main() {
         // Print errors if we encountered any
         GLCheckError();
 
-        // Set the FPS by incrementing the frame and diving it by the difference of the current time and the begin time
+        // Set the FPS by incrementing the frame and diving it by the difference of the current time and the start time
         double fps = ++frames / glfwGetTime() - begin_time;
 
         // Create a new ImGui frame
@@ -330,7 +330,7 @@ int main() {
         ImGui::SliderFloat("Rotation Speed", &rotation_speed, 0.0f, 10.0f);
         ImGui::Dummy(ImVec2(0.0f, 20.0f));
         ImGui::Text("Light Settings");
-        ImGui::ColorPicker4("Light Color", (float*)&lightColor);
+        ImGui::ColorPicker4("Light Color", reinterpret_cast<float *>(&lightColor));
         ImGui::Spacing();
         ImGui::SliderFloat("Specular Intensity", &specularIntensity, 0.0f, 10.0f);
         ImGui::SliderFloat("Ambient Intensity", &ambientIntensity, 0.0f, 1.0f);
