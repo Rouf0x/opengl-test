@@ -47,7 +47,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     camera.updateViewportSize(width, height); // update camera aspect ratio
 }
 
-
 int main() {
     // Initializes GLFW
     glfwInit();
@@ -213,12 +212,12 @@ int main() {
     // Create a new texture object
     texture diamondplateTexture(texturePath, GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE);
     // Generate a texture for the diamondplate texture
-    diamondplateTexture.GenerateTex(shaderProgram, "tex0", 0);
+    texture::GenerateTex(shaderProgram, "tex0", 0);
 
     // Create a new texture object
     texture diamondplateSpecular("../diamondplate01_spec.jpg", GL_TEXTURE_2D, 1, GL_RED, GL_UNSIGNED_BYTE);
     // Generate a texture for the diamondplate's specular texture
-    diamondplateSpecular.GenerateTex(shaderProgram, "tex1", 1);
+    texture::GenerateTex(shaderProgram, "tex1", 1);
 
     // Enable Depth_Test to avoid faces behind other ones from being rendered
     glEnable(GL_DEPTH_TEST);
@@ -280,7 +279,6 @@ int main() {
         rotation += rotation_speed;
         // Rotate the model to the rotation
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-
         // Send the pyramid's model matrix and the light color to the shader program
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
         glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
