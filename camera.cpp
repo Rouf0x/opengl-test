@@ -4,37 +4,41 @@
 
 #include "headers/camera.h"
 
-camera::camera(int width, int height, glm::vec3 position) {
+// Camera constructor
+camera::camera(const int width, const int height, const glm::vec3 position) {
     camera::width = width;
     camera::height = height;
     camera::position = position;
 
-    camera::orientation = glm::vec3(0.0f, 0.0f, -1.0f); // Looking forward
-    camera::up = glm::vec3(0.0f, 1.0f, 0.0f);            // Up vector
+    orientation = glm::vec3(0.0f, 0.0f, -1.0f); // Looking forward
+    up = glm::vec3(0.0f, 1.0f, 0.0f);           // Up vector
 }
 
-void camera::matrix(Shader &shader, const char *uniform) {
+// Set the cameraMatrix uniform to the camera matrix
+void camera::matrix(const Shader &shader, const char *uniform) {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
+// Function to update the camera's matrix (like FOV, near plane and far plane)
 void camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane) {
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 projection = glm::mat4(1.0f);
+    // Move the world to place the camera at the position
+    auto view = glm::lookAt(position, position + orientation, up);
+    // Creates a projection matrix
+    auto projection = glm::perspective(glm::radians(FOVdeg), static_cast<float>(width) / static_cast<float>(height), nearPlane, farPlane);
 
-    view = glm::lookAt(position, position + orientation, up);
-    projection = glm::perspective(glm::radians(FOVdeg), (float)width / (float)height, nearPlane, farPlane);
-
+    // Multiplies the projection matrice with the view matrice to get the final cameraMatrix
     cameraMatrix = projection * view;
-    //glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
-
+// Update the viewport size (mainly used for window resizes)
 void camera::updateViewportSize(int newWidth, int newHeight) {
     width = newWidth;
     height = newHeight;
 }
 
+// Handle camera movements
 void camera::inputs(GLFWwindow* window) {
+    // WASD keys
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
         position += speed * orientation;
     }
@@ -59,28 +63,38 @@ void camera::inputs(GLFWwindow* window) {
         position += speed * -up;
     }
 
+    // If the right mouse button is clicked
     if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+        // Hide the cursor
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+        // If it's the first click then snap the cursor to the middle of the screen
         if (firstClick) {
-            glfwSetCursorPos(window, (width/2), (height/2));
+            glfwSetCursorPos(window, (static_cast<float>(width)/2.0f), (static_cast<float>(height)/2.0f));
             firstClick = false;
         }
 
+        // Set mouseX and mouseY to the mouse X and Y position
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
 
-        float rotx = sensitivity * (float)(mouseY - (height /2)) / height;
-        float roty = sensitivity * (float)(mouseX - (width/2)) / width;
+        // Calculate the pitch and yaw rotational value
+        const float rotX = sensitivity * (static_cast<float>(mouseY) - (static_cast<float>(height) / 2.0f)) / static_cast<float>(height);
+        const float rotY = sensitivity * (static_cast<float>(mouseX) - (static_cast<float>(width) / 2.0f)) / static_cast<float>(width);
 
-        glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotx), glm::normalize(glm::cross(orientation, up)));
+        // Rotate the camera to the pitch/yaw
+        glm::vec3 newOrientation = glm::rotate(orientation, glm::radians(-rotX), glm::normalize(glm::cross(orientation, up)));
 
+        // If the angle is between 5 and 175 degrees, update the camera to the new orientation
         if (!(glm::angle(newOrientation, up) <= glm::radians(5.0f) or glm::angle(newOrientation, up) >= glm::radians(175.0f))) {
             orientation = newOrientation;
         }
 
-        orientation = glm::rotate(orientation, glm::radians(-roty), up); // Added semicolon
-        glfwSetCursorPos(window, (width/2), (height/2));
+        // Rotate to the yaw
+        orientation = glm::rotate(orientation, glm::radians(-rotY), up);
+
+        // Reset the cursor to the middle of the screen
+        glfwSetCursorPos(window, (static_cast<float>(width)/2), (static_cast<float>(height)/2));
     }
     else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_RELEASE) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);

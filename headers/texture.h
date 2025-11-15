@@ -19,7 +19,7 @@ public:
     void Bind() const;
     static void Unbind();
     void Delete() const;
-    void GenerateTex(Shader& shader, const char* uniformName, GLint unit) const;
+    static void GenerateTex(Shader& shader, const char* uniformName, GLint unit) ;
 };
 
 #endif //TEXTURE_H

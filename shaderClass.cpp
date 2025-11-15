@@ -4,6 +4,7 @@
 
 #include "headers/shaderClass.h"
 
+// Function that returns the contents of a file
 std::string get_file_contents(const char* filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
@@ -15,7 +16,9 @@ std::string get_file_contents(const char* filename) {
     return contents.str();
 }
 
+// Create a new shader object
 Shader::Shader(const char* vertexFile, const char* fragmentFile) {
+    // Get the vertex and fragment shaders source code
     std::string vertexCode = get_file_contents(vertexFile);
     std::string fragmentCode = get_file_contents(fragmentFile);
 
@@ -27,6 +30,7 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile) {
     glShaderSource(vertexShader, 1, &vertexSource, nullptr);
     glCompileShader(vertexShader);
 
+    // Check for compilation errors
     checkCompilationErrors(vertexShader, "Vertex Shader");
 
     // Create and compile fragment shader
@@ -34,14 +38,16 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile) {
     glShaderSource(fragmentShader, 1, &fragmentSource, nullptr);
     glCompileShader(fragmentShader);
 
+    // Check for compilation errors
     checkCompilationErrors(fragmentShader, "Fragment Shader");
 
-    // Create program (store in member ID)
+    // Create the shader program by linking the shaders
     ID = glCreateProgram();
     glAttachShader(ID, vertexShader);
     glAttachShader(ID, fragmentShader);
     glLinkProgram(ID);
 
+    // Check for compilation errors
     checkCompilationErrors(ID, "Program Link");
 
     // Delete shaders after linking
@@ -57,25 +63,12 @@ void Shader::checkCompilationErrors(unsigned int shader, const char* type) {
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
         std::cout << type << ": compilation failed!\n" << infoLog << std::endl;
     }
-
-    /*glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
-        std::cout << "Fragment shader compilation failed:\n" << infoLog << std::endl;
-    }*/
-
-    /* Check linking
-    glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(ID, 512, nullptr, infoLog);
-        std::cout << "Shader program linking failed:\n" << infoLog << std::endl;
-    }*/
 }
 
-void Shader::Activate() {
+void Shader::Activate() const {
     glUseProgram(ID);
 }
 
-void Shader::Delete() {
+void Shader::Delete() const {
     glDeleteProgram(ID);
 }

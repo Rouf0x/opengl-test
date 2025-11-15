@@ -20,9 +20,9 @@
 
 class camera {
     public:
-        glm::vec3 position;
-        glm::vec3 orientation;
-        glm::vec3 up;
+        glm::vec3 position{};
+        glm::vec3 orientation{};
+        glm::vec3 up{};
         glm::mat4 cameraMatrix = glm::mat4(1.0f);
 
         bool firstClick = true;
@@ -35,7 +35,7 @@ class camera {
         camera(int width, int height, glm::vec3 position);
 
         void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
-        void matrix(Shader& shader, const char* uniform);
+        void matrix(const Shader& shader, const char* uniform);
 
         void inputs(GLFWwindow* window);
         void updateViewportSize(int newWidth, int newHeight);

@@ -17,11 +17,11 @@ class Shader {
     public:
         GLuint ID;
 
-        void checkCompilationErrors(unsigned int shader, const char* type);
+        static void checkCompilationErrors(unsigned int shader, const char* type);
         Shader(const char* vertexFile, const char* fragmentFile);
 
-    void Activate();
-    void Delete();
+    void Activate() const;
+    void Delete() const;
 };
 
 #endif //SHADERCLASS_H

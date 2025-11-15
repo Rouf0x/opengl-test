@@ -364,11 +364,8 @@ int main() {
     lightVAO.Delete();
     lightVBO.Delete();
     lightEBO.Delete();
-    shaderProgram.Delete();
     diamondplateTexture.Delete();
     diamondplateSpecular.Delete();
-    shaderProgram.Delete();
-    lightShader.Delete();
 
     // Destroy the window
     glfwDestroyWindow(window);
