@@ -5,7 +5,7 @@
 #include "headers/texture.h"
 #include "stb/stb_image.h"
 
-texture::texture(const char* textureImagePath, const GLenum textureType, const GLuint slot, const GLenum format, const GLenum pixelType)
+texture::texture(const char* textureImagePath, const char* textureType, const GLuint slot, const GLenum format, const GLenum pixelType)
 {
     // Load the image, storing the image width, height and number of color channel
     // Flip the image vertically to read it correctly
@@ -25,28 +25,28 @@ texture::texture(const char* textureImagePath, const GLenum textureType, const G
     // Generate the texture, activate and bind to it
     glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(textureType, ID);
+    glBindTexture(GL_TEXTURE_2D, ID);
 
     // Filtering
-    glTexParameteri(textureType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(textureType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // Wrapping
-    glTexParameteri(textureType, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(textureType, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // Load texture data
-    glTexImage2D(textureType, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
-    glGenerateMipmap(textureType);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     // Free image data
     stbi_image_free(bytes);
 
     // Unbind texture
-    glBindTexture(textureType, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void texture::GenerateTex(Shader& shader, const char* uniformName, const GLint unit)
+void texture::texUnit(Shader& shader, const char* uniformName, const GLint unit)
 {
     // Bind to the given shader
     shader.Activate();
@@ -60,7 +60,7 @@ void texture::GenerateTex(Shader& shader, const char* uniformName, const GLint u
 void texture::Bind() const
 {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(textureType, ID);
+    glBindTexture(GL_TEXTURE_2D, ID);
 }
 
 // Unbind to the texture

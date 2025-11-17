@@ -26,6 +26,8 @@ add_library(glad
         headers/VAO.h
         headers/texture.h
         headers/camera.h
+        mesh.cpp
+        headers/mesh.h
 )
 
 target_include_directories(glad PUBLIC ${INCLUDE_DIR} headers)

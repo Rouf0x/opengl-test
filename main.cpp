@@ -1,5 +1,5 @@
 //#include <stdio.h>
-#include <iostream>
+/*#include <iostream>
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
@@ -17,7 +17,13 @@
 #include "headers/VBO.h"
 #include "headers/EBO.h"
 #include "headers/texture.h"
-#include "headers/camera.h"
+#include "headers/camera.h"*/
+
+#include "mesh.h"
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_glfw.h>
+#include <imgui/imgui_impl_opengl3.h>
 
 // Initialize the base window size
 int scr_width = 1366;
@@ -32,9 +38,11 @@ static void GLClearError() {
 }
 
 // Function that prints out OpenGL errors
-static void GLCheckError() {
-    while (const GLenum Error = glGetError()) {
-        std::cout << "OpenGL Error: " << Error << std::endl;
+static void GLCheckError(const char* loc = "") {
+    while (GLenum Error = glGetError()) {
+        std::cout << "OpenGL Error: " << Error;
+        if (loc[0] != '\0') std::cout << " at " << loc;
+        std::cout << std::endl;
     }
 }
 
@@ -57,32 +65,36 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Pyramid vertices data
-    GLfloat vertices[] =
-    { //     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
-        -0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f, 	 0.0f, 0.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-        -0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 0.0f, 5.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-         0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 5.0f,      0.0f, -1.0f, 0.0f, // Bottom side
-         0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.0f, -1.0f, 0.0f, // Bottom side
+    vertex pyramid_vertices[] = {
+        // Bottom side
+        vertex{glm::vec3(-0.5f, 0.0f,  0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(0.0f, 0.0f)},
+        vertex{glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(0.0f, 5.0f)},
+        vertex{glm::vec3( 0.5f, 0.0f, -0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(5.0f, 5.0f)},
+        vertex{glm::vec3( 0.5f, 0.0f,  0.5f), glm::vec3( 0.0f, -1.0f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(5.0f, 0.0f)},
 
-        -0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f, 	 0.0f, 0.0f,     -0.8f, 0.5f,  0.0f, // Left Side
-        -0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,     -0.8f, 0.5f,  0.0f, // Left Side
-         0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,     -0.8f, 0.5f,  0.0f, // Left Side
+        // Left Side
+        vertex{glm::vec3(-0.5f, 0.0f,  0.5f), glm::vec3(-0.8f,  0.5f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(0.0f, 0.0f)},
+        vertex{glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3(-0.8f,  0.5f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(5.0f, 0.0f)},
+        vertex{glm::vec3( 0.0f, 0.8f,  0.0f), glm::vec3(-0.8f,  0.5f, 0.0f), glm::vec3(0.92f, 0.86f, 0.76f), glm::vec2(2.5f, 5.0f)},
 
-        -0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.0f, 0.5f, -0.8f, // Non-facing side
-         0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 0.0f, 0.0f,      0.0f, 0.5f, -0.8f, // Non-facing side
-         0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,      0.0f, 0.5f, -0.8f, // Non-facing side
+        // Non-facing side
+        vertex{glm::vec3(-0.5f, 0.0f, -0.5f), glm::vec3( 0.0f,  0.5f,-0.8f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(5.0f, 0.0f)},
+        vertex{glm::vec3( 0.5f, 0.0f, -0.5f), glm::vec3( 0.0f,  0.5f,-0.8f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(0.0f, 0.0f)},
+        vertex{glm::vec3( 0.0f, 0.8f,  0.0f), glm::vec3( 0.0f,  0.5f,-0.8f), glm::vec3(0.92f, 0.86f, 0.76f), glm::vec2(2.5f, 5.0f)},
 
-         0.5f, 0.0f, -0.5f,     0.83f, 0.70f, 0.44f,	 0.0f, 0.0f,      0.8f, 0.5f,  0.0f, // Right side
-         0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.8f, 0.5f,  0.0f, // Right side
-         0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,      0.8f, 0.5f,  0.0f, // Right side
+        // Right side
+        vertex{glm::vec3( 0.5f, 0.0f, -0.5f), glm::vec3( 0.8f,  0.5f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(0.0f, 0.0f)},
+        vertex{glm::vec3( 0.5f, 0.0f,  0.5f), glm::vec3( 0.8f,  0.5f, 0.0f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(5.0f, 0.0f)},
+        vertex{glm::vec3( 0.0f, 0.8f,  0.0f), glm::vec3( 0.8f,  0.5f, 0.0f), glm::vec3(0.92f, 0.86f, 0.76f), glm::vec2(2.5f, 5.0f)},
 
-         0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f,	 5.0f, 0.0f,      0.0f, 0.5f,  0.8f, // Facing side
-        -0.5f, 0.0f,  0.5f,     0.83f, 0.70f, 0.44f, 	 0.0f, 0.0f,      0.0f, 0.5f,  0.8f, // Facing side
-         0.0f, 0.8f,  0.0f,     0.92f, 0.86f, 0.76f,	 2.5f, 5.0f,      0.0f, 0.5f,  0.8f  // Facing side
+        // Facing side
+        vertex{glm::vec3( 0.5f, 0.0f,  0.5f), glm::vec3( 0.0f,  0.5f, 0.8f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(5.0f, 0.0f)},
+        vertex{glm::vec3(-0.5f, 0.0f,  0.5f), glm::vec3( 0.0f,  0.5f, 0.8f), glm::vec3(0.83f, 0.70f, 0.44f), glm::vec2(0.0f, 0.0f)},
+        vertex{glm::vec3( 0.0f, 0.8f,  0.0f), glm::vec3( 0.0f,  0.5f, 0.8f), glm::vec3(0.92f, 0.86f, 0.76f), glm::vec2(2.5f, 5.0f)}
     };
 
     // Indices for pyramid's vertices order
-    GLuint indices[] =
+    GLuint pyramid_indices[] =
     {
         0, 1, 2, // Bottom side
         0, 2, 3, // Bottom side
@@ -93,23 +105,22 @@ int main() {
     };
 
     // Vertices position data for the light source
-    GLfloat light_source_cube_vertices[] = {
-        // Positions
+    vertex light_cube_vertices[] = {
         // Front face
-        -0.5f, -0.5f,  0.5f,
-         0.5f, -0.5f,  0.5f,
-         0.5f,  0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f,
+        vertex{glm::vec3(-0.5f, -0.5f,  0.5f)}, // Color set to white
+        vertex{glm::vec3( 0.5f, -0.5f,  0.5f)},
+        vertex{glm::vec3( 0.5f,  0.5f,  0.5f)},
+        vertex{glm::vec3(-0.5f,  0.5f,  0.5f)},
 
         // Back face
-        -0.5f, -0.5f, -0.5f,
-         0.5f, -0.5f, -0.5f,
-         0.5f,  0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f,
+        vertex{glm::vec3(-0.5f, -0.5f, -0.5f)},
+        vertex{glm::vec3( 0.5f, -0.5f, -0.5f)},
+        vertex{glm::vec3( 0.5f,  0.5f, -0.5f)},
+        vertex{glm::vec3(-0.5f,  0.5f, -0.5f)}
     };
 
     // Light source's indices
-    GLuint light_source_cube_indices[] = {
+    GLuint light_cube_indices[] = {
         // Front face
         0, 1, 2,
         2, 3, 0,
@@ -165,59 +176,23 @@ int main() {
     const double begin_time = glfwGetTime();
     int frames = 0;
 
+    texture textures[] {
+        texture("../diamondplate01.jpg", "diffuse", 0, GL_RGB, GL_UNSIGNED_BYTE),
+        texture("../diamondplate01_spec.jpg", "diffuse", 1, GL_RED, GL_UNSIGNED_BYTE)
+    };
+
     // Create a new Shader Program with the vertex and fragment shaders
     Shader shaderProgram("../resources/shaders/default_vertex.glsl", "../resources/shaders/default_fragment.glsl");
-
-    // Create a VAO and bind it
-    VAO VAO1;
-    VAO1.Bind();
-
-    // Create a VBO and an EBO, passing in the vertices and indices data, as well as their byte size
-    VBO VBO1(vertices, sizeof(vertices));
-    EBO EBO1(indices, sizeof(indices));
-
-    // Link the VBO to the VAO1
-    VAO1.LinkAttrib(VBO1, 0, 3, GL_FLOAT, 11 * sizeof(float), nullptr);
-    VAO1.LinkAttrib(VBO1, 1, 3, GL_FLOAT, 11 * sizeof(float), reinterpret_cast<void *>(3 * sizeof(float)));
-    VAO1.LinkAttrib(VBO1, 2, 2, GL_FLOAT, 11 * sizeof(float), reinterpret_cast<void *>(6 * sizeof(float)));
-    VAO1.LinkAttrib(VBO1, 3, 3, GL_FLOAT, 11 * sizeof(float), reinterpret_cast<void *>(8 * sizeof(float)));
-
-    // Unbind (stop using) to prevent accidental changes to the VAO, VBO or EBO
-    VAO1.Unbind();
-    VBO1.Unbind();
-    EBO1.Unbind();
+    std::vector <vertex> pyramid_verts(pyramid_vertices, pyramid_vertices + sizeof(pyramid_vertices) / sizeof(vertex));
+    std::vector <GLuint> pyramid_ind(pyramid_indices, pyramid_indices + sizeof(pyramid_indices) / sizeof(GLuint));
+    std::vector <texture> tex(textures, textures + sizeof(textures) / sizeof(texture));
+    mesh pyramid(pyramid_verts, pyramid_ind, tex);
 
     // Create a new light shader object
     Shader lightShader("../resources/shaders/light_vertex.glsl", "../resources/shaders/light_fragment.glsl");
-
-    // Create a light VAO and to bind it
-    VAO lightVAO;
-    lightVAO.Bind();
-
-    // Create a VBO and an EBO for the light VAO, passing in the vertices and indices data, as well as their byte size
-    VBO lightVBO(light_source_cube_vertices, sizeof(light_source_cube_vertices));
-    EBO lightEBO(light_source_cube_indices, sizeof(light_source_cube_indices));
-
-    // Links the light VBO data to the light VAO
-    lightVAO.LinkAttrib(lightVBO, 0, 3, GL_FLOAT, 3 * sizeof(float), nullptr);
-
-    // Unbind to prevent accidental changes to the light VAO, VBO or EBO
-    lightVAO.Unbind();
-    lightVBO.Unbind();
-    lightEBO.Unbind();
-
-    // Texturing
-    // Set texture path
-    const char* texturePath = "../diamondplate01.jpg";
-    // Create a new texture object
-    texture diamondplateTexture(texturePath, GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE);
-    // Generate a texture for the diamondplate texture
-    texture::GenerateTex(shaderProgram, "tex0", 0);
-
-    // Create a new texture object
-    texture diamondplateSpecular("../diamondplate01_spec.jpg", GL_TEXTURE_2D, 1, GL_RED, GL_UNSIGNED_BYTE);
-    // Generate a texture for the diamondplate's specular texture
-    texture::GenerateTex(shaderProgram, "tex1", 1);
+    std::vector <vertex> light_verts(light_cube_vertices, light_cube_vertices + sizeof(light_cube_vertices) / sizeof(vertex));
+    std::vector <GLuint> light_ind(light_cube_indices, light_cube_indices + sizeof(light_cube_indices) / sizeof(GLuint));
+    mesh light(light_verts, light_ind, tex);
 
     // Enable Depth_Test to avoid faces behind other ones from being rendered
     glEnable(GL_DEPTH_TEST);
@@ -235,74 +210,50 @@ int main() {
     // Set the light color to solid white
     glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
+    GLCheckError("initialization");
+
     // Loop that stops once the window should close.
     while (!glfwWindowShouldClose(window)) {
-        // Sets the background color to rgba float values
+        GLClearError();
+
+        // Specify the color of the background
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-        // Clear the color buffer bit and the depth buffer bit
+        // Clean the back buffer and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Binds to the light shader.
-        lightShader.Activate();
+        // Handles camera inputs
+        camera.inputs(window);
+        // Updates and exports the camera matrix to the Vertex Shader
+        camera.updateMatrix(FOV, 0.1f, 100.0f);
 
-        // Creates the matrix for the light
-        //auto lightModel = glm::mat4(1.0f);
-        // Set the position of the light to the camera's position
-        //lightModel = glm::translate(lightModel, lightPos);
-        //lightModel = glm::scale(lightModel, glm::vec3(0.05f, 0.05f, 0.05f));
-        //int lightLoc = glGetUniformLocation(lightShader.ID, "model");
-
-        glm::vec3 lightPos = camera.position; //glm::vec3(0.6f, 0.7f, 0.6f);
-        glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-        //glUniformMatrix4fv(lightLoc, 1, GL_FALSE, glm::value_ptr(lightModel));
-
-        // Use the shader program
         shaderProgram.Activate();
 
-        // Set all uniforms to their respective variables
+        // Create and send the model matrix for the pyramid
+        glm::mat4 pyramidModel = glm::mat4(1.0f);
+        // Update the rotation
+        rotation += rotation_speed;
+        pyramidModel = glm::rotate(pyramidModel, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(pyramidModel));
+
+        glm::vec3 lightPos = camera.position;
         glUniform3f(glGetUniformLocation(shaderProgram.ID, "lookVector"), camera.orientation.x, camera.orientation.y, camera.orientation.z);
         glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+        glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
         glUniform3f(glGetUniformLocation(shaderProgram.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-
         glUniform1i(glGetUniformLocation(shaderProgram.ID, "lightType"), lightingType);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "specularIntensity"), specularIntensity);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "ambientIntensity"), ambientIntensity);
 
-        // Update the camera matrix and handle inputs
-        camera.updateMatrix(FOV, 0.1f, 1000.0f);
-        camera.matrix(shaderProgram, "camMatrix");
-        camera.inputs(window);
-
-        // Create a matrix for the pyramid model
-        auto model = glm::mat4(1.0f);
-        // Increase the rotation by the rotation speed
-        rotation += rotation_speed;
-        // Rotate the model to the rotation
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-        // Send the pyramid's model matrix and the light color to the shader program
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-
-        // Bind to the main VAO and texture
-        VAO1.Bind();
-        diamondplateTexture.Bind();
-        diamondplateSpecular.Bind();
-
-        // Clear the error log
-        GLClearError();
-
-        // Draw the main VAO elements
-        glDrawElements(GL_TRIANGLES, sizeof(indices)/sizeof(int),GL_UNSIGNED_INT, nullptr);
-
-        // Binds to the light shader, apply the camera matrix (by sending it to the light shader) and binds to the light VAO
         lightShader.Activate();
-        camera.matrix(lightShader, "camMatrix");
-        lightVAO.Bind();
-        // Draw the light VAO elements
-        glDrawElements(GL_TRIANGLES, sizeof(light_source_cube_indices) / sizeof(int), GL_UNSIGNED_INT, nullptr);
+        glUniform3f(glGetUniformLocation(lightShader.ID, "lookVector"), camera.orientation.x, camera.orientation.y, camera.orientation.z);
+        auto lightModel = glm::mat4(1.0f);
+        lightModel = glm::translate(lightModel, lightPos);
+        lightModel = glm::scale(lightModel, glm::vec3(0.05f));
+        glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(lightModel));
+        glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 
-        // Print errors if we encountered any
-        GLCheckError();
+        pyramid.draw(shaderProgram, camera);
+        light.draw(lightShader, camera);
 
         // Set the FPS by incrementing the frame and diving it by the difference of the current time and the start time
         double fps = ++frames / glfwGetTime() - begin_time;
@@ -343,11 +294,12 @@ int main() {
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // Swap the back buffer to the front buffer to correctly display the color.
+        // Swap the back buffer with the front buffer
         glfwSwapBuffers(window);
-
-        // Responds to GLFW events.
+        // Take care of all GLFW events
         glfwPollEvents();
+
+        GLCheckError("runtime");
     }
 
     // Cleans all the ImGui stuff
@@ -356,14 +308,8 @@ int main() {
     ImGui::DestroyContext();
 
     // Cleans all objects (VAO, VBO, EBO, ShaderProgram...)
-    VAO1.Delete();
-    VBO1.Delete();
-    EBO1.Delete();
-    lightVAO.Delete();
-    lightVBO.Delete();
-    lightEBO.Delete();
-    diamondplateTexture.Delete();
-    diamondplateSpecular.Delete();
+    shaderProgram.Delete();
+    lightShader.Delete();
 
     // Destroy the window
     glfwDestroyWindow(window);

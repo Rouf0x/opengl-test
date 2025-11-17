@@ -58,12 +58,22 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile) {
 void Shader::checkCompilationErrors(unsigned int shader, const char* type) {
     int success;
     char infoLog[512];
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cout << type << ": compilation failed!\n" << infoLog << std::endl;
+
+    if (std::string(type) != "Program Link") { // shader
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+            std::cout << type << ": compilation failed!\n" << infoLog << std::endl;
+        }
+    } else { // program
+        glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        if (!success) {
+            glGetProgramInfoLog(shader, 512, nullptr, infoLog);
+            std::cout << type << ": linking failed!\n" << infoLog << std::endl;
+        }
     }
 }
+
 
 void Shader::Activate() const {
     glUseProgram(ID);
