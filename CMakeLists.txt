@@ -41,6 +41,8 @@ set(IMGUI_SRC
         ${IMGUI_DIR}/imgui_demo.cpp
         ${IMGUI_DIR}/imgui_impl_glfw.cpp
         ${IMGUI_DIR}/imgui_impl_opengl3.cpp
+        model.cpp
+        headers/model.h
 )
 
 add_library(imgui STATIC ${IMGUI_SRC})
@@ -49,6 +51,16 @@ target_link_libraries(imgui PRIVATE ${LIB_DIR}/lib/libglfw3.a)
 
 # --- Main executable ---
 add_executable(opengl main.cpp)
+
+# 1. ✅ FIX: Tell the linker where to search for 'libassimp.so' (-L flag)
+target_link_directories(opengl PRIVATE ${LIB_DIR}/lib)
+
+# 2. ✅ FIX: Tell the OS where to find the .so file at runtime (RPATH)
+# This is crucial for local dynamic libraries on Linux.
+set_target_properties(opengl PROPERTIES
+        INSTALL_RPATH "${LIB_DIR}/lib"
+)
+
 target_include_directories(opengl PRIVATE ${INCLUDE_DIR} headers ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
 # --- Find OpenGL ---
@@ -60,6 +72,10 @@ target_link_libraries(opengl
         glad
         imgui
         ${LIB_DIR}/lib/libglfw3.a
+
+        # 3. ✅ Link by name 'assimp'. This is now resolved by the search path in step 1.
+        assimp
+
         OpenGL::GL
         dl
         pthread

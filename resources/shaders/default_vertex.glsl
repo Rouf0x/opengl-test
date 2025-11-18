@@ -15,6 +15,7 @@ out vec2 textureCoordinates;
 // Import uniforms
 uniform mat4 camMatrix;
 uniform mat4 model;
+uniform float modelScale;
 
 void main() {
     currentPos = vec3(model * vec4(aPos, 1.0f));
