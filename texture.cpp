@@ -6,7 +6,7 @@ texture::texture(const char* textureImagePath, const char* textureType, const GL
     int widthImg, heightImg, numColCh;
 
     // Flip the image vertically for OpenGL
-    stbi_set_flip_vertically_on_load(1);
+    //stbi_set_flip_vertically_on_load(1);
     unsigned char* bytes = stbi_load(textureImagePath, &widthImg, &heightImg, &numColCh, 0);
 
     if (!bytes) {

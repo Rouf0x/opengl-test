@@ -113,7 +113,6 @@ int main() {
     // Load your 3D model (e.g., from an OBJ or GLTF file)
     // Adjust the path to where your model file is located!
     Model loadedModel("../resources/models/sponza_palace/sponza.obj");
-
     // Light shader and mesh
     Shader lightShader("../resources/shaders/light_vertex.glsl", "../resources/shaders/light_fragment.glsl");
     std::vector<vertex> light_verts(light_cube_vertices, light_cube_vertices + sizeof(light_cube_vertices)/sizeof(vertex));
@@ -124,14 +123,25 @@ int main() {
     // Enable Depth_Test to avoid faces behind other ones from being rendered
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    glDepthFunc(GL_LESS);
+
+    glfwSwapInterval(1);
+
     // -------------------------- Model & Light Variables --------------------------
     float rotation = 0.0f;
     float rotation_speed = 0.0f;
     float FOV = 60.0f;
 
     int lightingType = 1;
-    float specularIntensity = 5.0f;
-    float ambientIntensity = 0.1f;
+    float specularIntensity = 1.0f;
+    float ambientIntensity = 0.03f;
+    float lightBIntensity = 0.001f;
+    float lightAIntensity = 0.00f;
+    float uiLightA = lightAIntensity;
 
     auto lightColor = glm::vec4(1.0f); // Set the light color to solid white
 
@@ -143,6 +153,8 @@ int main() {
 
         // Clear screen
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+        //glClearColor(0.77f, 0.88f, 0.90f, 1.0f);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Handle camera inputs and update matrix
@@ -164,6 +176,8 @@ int main() {
         glUniform1i(glGetUniformLocation(shaderProgram.ID, "lightType"), lightingType);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "specularIntensity"), specularIntensity);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "ambientIntensity"), ambientIntensity);
+        glUniform1f(glGetUniformLocation(shaderProgram.ID, "lightBIntensity"), lightBIntensity);
+        glUniform1f(glGetUniformLocation(shaderProgram.ID, "lightAIntensity"), lightAIntensity);
 
         // -------------------------- Light Shader --------------------------
         lightShader.Activate();
@@ -173,7 +187,6 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(lightModel));
         glUniform4fv(glGetUniformLocation(lightShader.ID, "lightColor"), 1, glm::value_ptr(lightColor));
 
-        // Draw model and light
         loadedModel.draw(shaderProgram, camera);
         light.draw(lightShader, camera);
 
@@ -206,6 +219,9 @@ int main() {
         ImGui::Spacing();
         ImGui::SliderFloat("Specular Intensity", &specularIntensity, 0.0f, 10.0f);
         ImGui::SliderFloat("Ambient Intensity", &ambientIntensity, 0.0f, 1.0f);
+        ImGui::SliderFloat("Light Intensity", &lightBIntensity, 0.0f, 0.1f);
+        ImGui::SliderFloat("Light Distance Fade Off", &uiLightA, 0.0f, 100.0f);
+        lightAIntensity = uiLightA / 1000000.0f;
         const char* lightingTypesArray[] = { "Point Light", "Direct Light", "Spot Light" };
         static int current_item_index = 0;
         if (ImGui::Combo("Lighting Type", &current_item_index, lightingTypesArray, IM_ARRAYSIZE(lightingTypesArray))) {
