@@ -4,6 +4,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_opengl3.h>
+#include <filesystem>
 
 // Initialize the base window size
 int scr_width = 1366;
@@ -32,6 +33,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     scr_width = width;
     scr_height = height;
     camera.updateViewportSize(width, height); // update camera aspect ratio
+}
+
+std::vector<std::string> getObjFiles(const std::string &modelsDir) {
+    std::vector<std::string> objPaths;
+
+    for (const auto &entry : std::filesystem::recursive_directory_iterator(modelsDir)) {
+        if (!entry.is_regular_file()) continue;
+        auto path = entry.path();
+        if (path.has_extension() && path.extension() == ".obj") {
+            objPaths.push_back(path.string());
+        }
+    }
+
+    // Optional: sort alphabetically
+    std::sort(objPaths.begin(), objPaths.end());
+    return objPaths;
 }
 
 int main() {
@@ -113,12 +130,12 @@ int main() {
     // Load your 3D model (e.g., from an OBJ or GLTF file)
     Model loadedModel("../resources/models/landscape/terrain.obj");
 
-    std::vector<std::string> modelFiles = {
-        "../resources/models/landscape/terrain.obj",
-        "../resources/models/sponza_palace/sponza.obj",
-        "../resources/models/human.obj",
-        "../resources/models/teapot.obj",
-    };
+    std::string modelsPath = "../resources/models";
+    std::vector<std::string> modelFiles = getObjFiles(modelsPath);
+    if (modelFiles.empty()) {
+        std::cerr << "No .obj found in " << modelsPath << "\n";
+        return -1;
+    }
     static int currentModelIndex = 0;
     Model* activeModel = new Model(modelFiles[currentModelIndex].data());
 
