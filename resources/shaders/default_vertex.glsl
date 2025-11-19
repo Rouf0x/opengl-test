@@ -18,7 +18,7 @@ uniform mat4 model;
 uniform float modelScale;
 
 void main() {
-    currentPos = vec3(model * vec4(aPos, 1.0f));
+    currentPos = vec3(model * modelScale * vec4(aPos, 1.0f));
     // Calculate the world position by multiplying the model's matrix by the vertex position.
 
     // Modify the normal to handle non-uniform scaling

@@ -111,8 +111,17 @@ int main() {
                          "../resources/shaders/default_fragment.glsl");
 
     // Load your 3D model (e.g., from an OBJ or GLTF file)
-    // Adjust the path to where your model file is located!
-    Model loadedModel("../resources/models/sponza_palace/sponza.obj");
+    Model loadedModel("../resources/models/landscape/terrain.obj");
+
+    std::vector<std::string> modelFiles = {
+        "../resources/models/landscape/terrain.obj",
+        "../resources/models/sponza_palace/sponza.obj",
+        "../resources/models/human.obj",
+        "../resources/models/teapot.obj",
+    };
+    static int currentModelIndex = 0;
+    Model* activeModel = new Model(modelFiles[currentModelIndex].data());
+
     // Light shader and mesh
     Shader lightShader("../resources/shaders/light_vertex.glsl", "../resources/shaders/light_fragment.glsl");
     std::vector<vertex> light_verts(light_cube_vertices, light_cube_vertices + sizeof(light_cube_vertices)/sizeof(vertex));
@@ -142,6 +151,7 @@ int main() {
     float lightBIntensity = 0.001f;
     float lightAIntensity = 0.00f;
     float uiLightA = lightAIntensity;
+    float modelScale = 1.0f;
 
     auto lightColor = glm::vec4(1.0f); // Set the light color to solid white
 
@@ -178,6 +188,7 @@ int main() {
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "ambientIntensity"), ambientIntensity);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "lightBIntensity"), lightBIntensity);
         glUniform1f(glGetUniformLocation(shaderProgram.ID, "lightAIntensity"), lightAIntensity);
+        glUniform1f(glGetUniformLocation(shaderProgram.ID, "modelScale"), modelScale);
 
         // -------------------------- Light Shader --------------------------
         lightShader.Activate();
@@ -187,7 +198,8 @@ int main() {
         glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(lightModel));
         glUniform4fv(glGetUniformLocation(lightShader.ID, "lightColor"), 1, glm::value_ptr(lightColor));
 
-        loadedModel.draw(shaderProgram, camera);
+        activeModel->draw(shaderProgram, camera);
+
         light.draw(lightShader, camera);
 
         // -------------------------- FPS Calculation --------------------------
@@ -212,6 +224,21 @@ int main() {
 
         ImGui::Text("Model Settings");
         ImGui::SliderFloat("Rotation Speed", &rotation_speed, 0.0f, 10.0f);
+        ImGui::SliderFloat("Model Scale", &modelScale, 0.0f, 500.0f);
+        ImGui::Text("Model Selection");
+        if (ImGui::Combo("Models", &currentModelIndex,
+                         [](void* data, int idx, const char** out_text) {
+                             auto& models = *reinterpret_cast<std::vector<std::string>*>(data);
+                             *out_text = models[idx].c_str();
+                             return true;
+                         },
+                         &modelFiles, modelFiles.size(), modelFiles.size()))
+        {
+            // Delete old model and load new one
+            delete activeModel;
+            activeModel = new Model(modelFiles[currentModelIndex].data());
+        }
+
         ImGui::Dummy(ImVec2(0.0f, 20.0f));
 
         ImGui::Text("Light Settings");

@@ -1,41 +1,45 @@
 #include "headers/texture.h"
 #include "stb/stb_image.h"
 
+
 // Create a texture from an image file
 texture::texture(const char* textureImagePath, const char* textureType, const GLuint slot, const GLenum format, const GLenum pixelType) {
     int widthImg, heightImg, numColCh;
 
-    // Flip the image vertically for OpenGL
-    //stbi_set_flip_vertically_on_load(1);
-    unsigned char* bytes = stbi_load(textureImagePath, &widthImg, &heightImg, &numColCh, 0);
-
-    if (!bytes) {
-        throw std::runtime_error(std::string("Failed to load texture: ") + textureImagePath);
+    unsigned char* bytes = nullptr;
+    if (textureImagePath) {
+        // Attempt to load image
+        bytes = stbi_load(textureImagePath, &widthImg, &heightImg, &numColCh, 0);
+        if (!bytes) {
+            std::cerr << "Failed to load texture: " << textureImagePath << " → using default 1x1 texture\n";
+        }
     }
 
-    // Store texture type and unit
+    // If no image or load failed, create a default 1x1 texture
+    unsigned char defaultPixel[4] = {255, 255, 255, 255}; // White by default
+    if (!bytes) {
+        widthImg = heightImg = 1;
+        bytes = defaultPixel;
+    }
+
     this->textureType = textureType;
     this->unit = slot;
 
-    // Generate and bind the texture
     glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_2D, ID);
 
-    // Set texture filtering
+    // Filtering and wrapping
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // Set texture wrapping
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    // Load the texture into OpenGL
+    // Upload texture to GPU
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0, format, pixelType, bytes);
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    // Free image memory and unbind
-    stbi_image_free(bytes);
+    if (textureImagePath) stbi_image_free(bytes); // Only free if loaded from file
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

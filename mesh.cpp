@@ -36,40 +36,47 @@ mesh::mesh(std::vector<vertex>& vertices,
 
 void mesh::draw(Shader& shader, camera& camera)
 {
-    // Activate the shader and bind the VAO for drawing
     shader.Activate();
     VAO1.Bind();
 
-    unsigned int numDiffuse = 0;  // Counter for diffuse textures
-    unsigned int numSpecular = 0; // Counter for specular textures
+    unsigned int numDiffuse = 0;
+    unsigned int numSpecular = 0;
 
-    // Bind each texture to the shader
-    for (unsigned int i = 0; i < textures.size(); i++)
-    {
-        std::string num;
-        std::string type = textures[i].textureType;
+    if (textures.empty()) {
+        texture defaultDiffuse(nullptr, "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE);
+        texture defaultSpecular(nullptr, "specular", 1, GL_RGBA, GL_UNSIGNED_BYTE);
 
-        if (type == "diffuse")
-        {
-            num = std::to_string(numDiffuse++);
+        // Bind global default textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, defaultDiffuse.ID);
+        glUniform1i(glGetUniformLocation(shader.ID, "diffuse0"), 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, defaultSpecular.ID);
+        glUniform1i(glGetUniformLocation(shader.ID, "specular0"), 1);
+    } else {
+        // Bind each mesh texture
+        for (unsigned int i = 0; i < textures.size(); i++) {
+            std::string num;
+            std::string type = textures[i].textureType;
+
+            if (type == "diffuse")
+                num = std::to_string(numDiffuse++);
+            else if (type == "specular")
+                num = std::to_string(numSpecular++);
+
+            textures[i].texUnit(shader, (type + num).c_str(), i);
+            textures[i].Bind();
         }
-        else if (type == "specular")
-        {
-            num = std::to_string(numSpecular++);
-        }
-
-        // Assign texture unit in the shader and bind the texture
-        textures[i].texUnit(shader, (type + num).c_str(), i);
-        textures[i].Bind();
     }
 
-    // Pass the camera position to the shader
+    // Pass camera info
     glUniform3f(glGetUniformLocation(shader.ID, "camPos"),
                 camera.position.x, camera.position.y, camera.position.z);
-
-    // Set the camera matrix in the shader
     camera.matrix(shader, "camMatrix");
 
-    // Draw the mesh using the element buffer
+    // Draw the mesh
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    VAO1.Unbind();
 }
+
